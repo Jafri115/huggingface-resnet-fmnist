@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Fashion MNIST Classifier</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .upload-container {
+            border: 2px dashed #ccc;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        #preview {
+            max-width: 224px;
+            display: block;
+            margin: 20px auto;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            background-color: #f8f9fa;
+        }
+        .confidence-meter {
+            height: 20px;
+            background-color: #e9ecef;
+            border-radius: 10px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+        .confidence-level {
+            height: 100%;
+            background-color: #28a745;
+            width: 0%;
+            transition: width 0.5s;
+        }
+        .class-progress {
+            margin-bottom: 5px;
+        }
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 3px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Fashion MNIST Classifier</h1>
+    <p>Upload an image of a fashion item to classify it</p>
+    
+    <div class="upload-container">
+        <form id="uploadForm" enctype="multipart/form-data">
+            <input type="file" id="fileInput" name="file" accept="image/*">
+            <button type="submit">Upload</button>
+        </form>
+    </div>
+    
+    <div id="imageContainer" style="display: none;">
+        <h3>Original Image:</h3>
+        <img id="originalPreview" src="" alt="Original Preview">
+        <h3>Processed Image:</h3>
+        <img id="processedPreview" src="" alt="Processed Preview">
+    </div>
+    
+    <div id="result" style="display: none;">
+        <h2>Prediction: <span id="predictionClass"></span></h2>
+        <p>Confidence: <span id="confidenceValue"></span>%</p>
+        <div class="confidence-meter">
+            <div class="confidence-level" id="confidenceLevel"></div>
+        </div>
+        
+        <h3>All Predictions:</h3>
+        <div id="allPredictions"></div>
+    </div>
+    
+    <script>
+        document.getElementById('uploadForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData();
+            formData.append('file', document.getElementById('fileInput').files[0]);
+            
+            fetch('/predict', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert('Error: ' + data.error);
+                    return;
+                }
+                
+                // Display images
+                document.getElementById('originalPreview').src = data.original_image;
+                document.getElementById('processedPreview').src = data.processed_image;
+                document.getElementById('imageContainer').style.display = 'block';
+                
+                // Display results
+                document.getElementById('predictionClass').textContent = data.class;
+                const confidence = Math.round(data.confidence * 100);
+                document.getElementById('confidenceValue').textContent = confidence;
+                document.getElementById('confidenceLevel').style.width = confidence + '%';
+                
+                // Display all predictions
+                const predictionsContainer = document.getElementById('allPredictions');
+                predictionsContainer.innerHTML = '';
+                
+                for (const [className, confidence] of Object.entries(data.all_predictions)) {
+                    const confidencePercent = Math.round(confidence * 100);
+                    
+                    const predictionDiv = document.createElement('div');
+                    predictionDiv.className = 'class-progress';
+                    
+                    const labelDiv = document.createElement('div');
+                    labelDiv.className = 'progress-label';
+                    labelDiv.innerHTML = `<span>${className}</span><span>${confidencePercent}%</span>`;
+                    
+                    const meterDiv = document.createElement('div');
+                    meterDiv.className = 'confidence-meter';
+                    
+                    const levelDiv = document.createElement('div');
+                    levelDiv.className = 'confidence-level';
+                    levelDiv.style.width = confidencePercent + '%';
+                    levelDiv.style.backgroundColor = className === data.class ? '#28a745' : '#6c757d';
+                    
+                    meterDiv.appendChild(levelDiv);
+                    predictionDiv.appendChild(labelDiv);
+                    predictionDiv.appendChild(meterDiv);
+                    predictionsContainer.appendChild(predictionDiv);
+                }
+                
+                document.getElementById('result').style.display = 'block';
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred during prediction');
+            });
+        });
+    </script>
+</body>
+</html>

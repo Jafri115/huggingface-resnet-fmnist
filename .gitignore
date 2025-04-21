@@ -1,5 +1,6 @@
 notebooks/fashion_mnist_samples/
-static
+static/processed
+static/uploads
 src\__pycache__
 artifacts
 *.pyc
