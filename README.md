@@ -91,6 +91,14 @@ python app.py
 
 Navigate to `http://localhost:5000` in your browser.
 
+### 5. Run the Gradio demo
+
+```bash
+python gradio_demo.py
+```
+
+Open the interface in your browser at `http://localhost:7860`.
+
 
 
 ## 🛠 Requirements

@@ -6,3 +6,4 @@ matplotlib
 gunicorn
 seaborn
 opencv-python
+gradio
